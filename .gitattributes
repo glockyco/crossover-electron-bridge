@@ -3,4 +3,6 @@
 *.cjs text eol=lf
 *.md text eol=lf
 *.json text eol=lf
+*.js text eol=lf
+*.toml text eol=lf
 .gitignore text eol=lf
