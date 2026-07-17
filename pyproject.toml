@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crossover-electron-bridge"
+version = "0.1.0"
+description = "Run compatible Electron games through CrossOver in a native macOS browser with profile-based patching and IPC bridges."
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+crossover-electron-bridge = "crossover_electron_bridge.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+crossover_electron_bridge = [
+  "profiles/*.json",
+  "runtime/*.cjs",
+  "adapters/*.cjs",
+]

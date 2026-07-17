@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "id": "visseron-idle",
+  "display_name": "Visseron Idle",
+  "mode": "browser-only",
+  "bottle": "Steam",
+  "steam": {
+    "app_id": 4601670,
+    "install_dir": "Visseron Idle",
+    "supported_builds": [
+      {
+        "build_id": "24193581"
+      }
+    ]
+  },
+  "renderer": {
+    "assets": "resources/app/dist",
+    "bind_host": "127.0.0.1",
+    "browser_host": "localhost",
+    "port": 8765
+  },
+  "adapter": "visseron_idle",
+  "state_key": "visseron-idle",
+  "adapter_config": {
+    "save_dir": "~/.visseron-idle",
+    "wine_state_path": "users/crossover/AppData/Roaming/visseron-idle",
+    "max_request_bytes": 4194304,
+    "max_backups": 10,
+    "backup_interval_seconds": 300,
+    "backup_slots": [1, 2, 3]
+  }
+}

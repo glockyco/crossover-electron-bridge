@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "id": "fractured-realms",
+  "display_name": "Fractured Realms",
+  "mode": "steam-electron",
+  "bottle": "Steam",
+  "steam": {
+    "app_id": 3789070,
+    "install_dir": "Fractured Realms",
+    "supported_builds": [
+      {
+        "build_id": "24185239",
+        "archive_sha256": "3ba4d9b1b871a177f0a257dedc6eb229c4e195d0c05b2b5e00057f4581620c70",
+        "archive_size": 186084852
+      }
+    ]
+  },
+  "renderer": {
+    "assets": "resources/app/dist",
+    "bind_host": "127.0.0.1",
+    "browser_host": "127.0.0.1",
+    "port": 48766,
+    "archive": "resources/app.asar",
+    "entry": "electron/main.cjs"
+  },
+  "adapter": "fractured_realms",
+  "state_key": "fractured-realms-main"
+}
