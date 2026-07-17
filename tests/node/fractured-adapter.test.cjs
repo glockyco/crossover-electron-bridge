@@ -23,7 +23,7 @@ function request(pathname, payload, options = {}) {
 }
 
 test('exports exact service ABI and bridge keys', async () => {
-  assert.equal(adapter.id, 'CROSSOVER_BROWSER_GAMES_FRACTURED_REALMS_V1');
+  assert.equal(adapter.id, 'CROSSOVER_BROWSER_GAMES_FRACTURED_REALMS_V2');
   assert.equal(typeof adapter.bridgeScript, 'function');
   assert.equal(typeof adapter.handleApi, 'function');
 

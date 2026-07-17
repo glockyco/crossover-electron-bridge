@@ -163,7 +163,7 @@ class DoctorTests(unittest.TestCase):
 
     def test_steam_patched_archive_requires_valid_metadata_and_backup(self) -> None:
         original = b"known original"
-        revision = "CROSSOVER_BROWSER_GAMES_FRACTURED_REALMS_V1"
+        revision = "CROSSOVER_BROWSER_GAMES_FRACTURED_REALMS_V2"
         patched = original + revision.encode("utf-8")
         original_digest = hashlib.sha256(original).hexdigest()
         patched_digest = hashlib.sha256(patched).hexdigest()

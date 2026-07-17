@@ -22,7 +22,7 @@ from ..profiles import GameProfile
 class FracturedRealmsAdapter:
     """Patch the purchased Fractured Realms Electron entry point."""
 
-    revision = "CROSSOVER_BROWSER_GAMES_FRACTURED_REALMS_V1"
+    revision = "CROSSOVER_BROWSER_GAMES_FRACTURED_REALMS_V2"
 
     _ERROR = "Unexpected Fractured Realms entry point for build 24185239"
     _BUILD_ID = "24185239"
@@ -118,6 +118,7 @@ class FracturedRealmsAdapter:
         main_anchors = (
             "const STEAM_APP_ID = 3789070;",
             "function initSteam() {",
+            "const steamworks = require('steamworks.js');",
             "function createWindow() {",
             "app.whenReady().then(() => {",
             "ipcMain.handle('open-external',",
@@ -207,6 +208,53 @@ class FracturedRealmsAdapter:
             )
         )
         source = source.replace(native_handler, unlock_function, 1)
+
+        native_require = "const steamworks = require('steamworks.js');"
+        if source.count(native_require) != 1:
+            raise cls._reject()
+        source = source.replace(native_require, "const steamworks = loadSteamworks();", 1)
+
+        fs_anchor = "const fs   = require('fs');"
+        steamworks_loader = newline.join(
+            (
+                fs_anchor,
+                "",
+                "function loadSteamworks() {",
+                "  const sourceRoot = path.join(__dirname, '../node_modules/steamworks.js');",
+                "  const cacheRoot = path.join(app.getPath('userData'), 'crossover-steamworks-0.4.0-v1');",
+                "  const files = [",
+                "    'index.js',",
+                "    'dist/win64/steamworksjs.win32-x64-msvc.node',",
+                "    'dist/win64/steam_api64.dll',",
+                "  ];",
+                "  for (const relative of files) {",
+                "    const sourcePath = path.join(sourceRoot, relative);",
+                "    const targetPath = path.join(cacheRoot, relative);",
+                "    const sourceSize = fs.statSync(sourcePath).size;",
+                "    try {",
+                "      const targetStat = fs.lstatSync(targetPath);",
+                "      if (targetStat.isFile() && targetStat.size === sourceSize) continue;",
+                "    } catch (err) {",
+                "      if (err?.code !== 'ENOENT') throw err;",
+                "    }",
+                "    fs.mkdirSync(path.dirname(targetPath), { recursive: true });",
+                "    const temporaryPath = `${targetPath}.${process.pid}.tmp`;",
+                "    try {",
+                "      try { fs.unlinkSync(temporaryPath); } catch (err) { if (err?.code !== 'ENOENT') throw err; }",
+                "      fs.copyFileSync(sourcePath, temporaryPath);",
+                "      try { fs.unlinkSync(targetPath); } catch (err) { if (err?.code !== 'ENOENT') throw err; }",
+                "      fs.renameSync(temporaryPath, targetPath);",
+                "    } finally {",
+                "      try { fs.unlinkSync(temporaryPath); } catch (err) { if (err?.code !== 'ENOENT') throw err; }",
+                "    }",
+                "  }",
+                "  return require(path.join(cacheRoot, 'index.js'));",
+                "}",
+            )
+        )
+        if source.count(fs_anchor) != 1:
+            raise cls._reject()
+        source = source.replace(fs_anchor, steamworks_loader, 1)
 
         original_ready = newline.join(
             (

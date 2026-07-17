@@ -20,7 +20,7 @@ from crossover_electron_bridge.adapters.fractured_realms import FracturedRealmsA
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests/fixtures/fractured-realms/electron"
-REVISION = "CROSSOVER_BROWSER_GAMES_FRACTURED_REALMS_V1"
+REVISION = "CROSSOVER_BROWSER_GAMES_FRACTURED_REALMS_V2"
 REJECTION = "Unexpected Fractured Realms entry point for build 24185239"
 
 
@@ -110,6 +110,10 @@ class FracturedRealmsAdapterTests(unittest.TestCase):
             1,
         )
         transformed = self._entry().read_text(encoding="utf-8")
+        self.assertEqual(transformed.count("function loadSteamworks()"), 1)
+        self.assertEqual(transformed.count("const steamworks = loadSteamworks();"), 1)
+        self.assertIn("dist/win64/steamworksjs.win32-x64-msvc.node", transformed)
+        self.assertIn("dist/win64/steam_api64.dll", transformed)
         self.assertEqual(transformed.count("function unlockSteamAchievement(apiName)"), 1)
         self.assertEqual(
             transformed.count(
@@ -128,6 +132,7 @@ class FracturedRealmsAdapterTests(unittest.TestCase):
         """Run the transformed fixture with a tiny in-process Electron mock."""
         harness = r'''
 const fs = require('fs');
+const path = require('path');
 const Module = require('module');
 const vm = require('vm');
 const entry = process.argv[2];
@@ -141,6 +146,10 @@ const appHandlers = new Map();
 const windows = [];
 const app = {
   whenReady() { return { then(callback) { return Promise.resolve(callback()); } }; },
+  getPath(name) {
+    if (name !== 'userData') throw new Error(`unexpected app path: ${name}`);
+    return path.join(path.dirname(entry), 'user-data');
+  },
   on(name, callback) { appHandlers.set(name, callback); },
   quit() { events.push('quit'); },
 };
@@ -169,6 +178,20 @@ const steamworks = {
     return steamMode === 'none' ? null : steamClient;
   },
 };
+const steamworksSource = path.join(path.dirname(entry), '../node_modules/steamworks.js');
+for (const relative of [
+  'index.js',
+  'dist/win64/steamworksjs.win32-x64-msvc.node',
+  'dist/win64/steam_api64.dll',
+]) {
+  const sourcePath = path.join(steamworksSource, relative);
+  fs.mkdirSync(path.dirname(sourcePath), { recursive: true });
+  fs.writeFileSync(sourcePath, relative);
+}
+const cachedSteamworksIndex = path.join(
+  path.dirname(entry),
+  'user-data/crossover-steamworks-0.4.0-v1/index.js',
+);
 let hostConfig = null;
 const host = {
   start(config) {
@@ -179,7 +202,7 @@ const host = {
 const originalLoad = Module._load;
 Module._load = function(request, parent, isMain) {
   if (request === 'electron') return { app, BrowserWindow, ipcMain, shell };
-  if (request === 'steamworks.js') return steamworks;
+  if (request === 'steamworks.js' || request === cachedSteamworksIndex) return steamworks;
   if (request === './crossover-browser-host.cjs') return host;
   if (request === './crossover-browser-adapter.cjs') return {};
   if (request === 'path') return require('node:path');
@@ -198,6 +221,10 @@ setImmediate(() => {
     nativeBadName: handlers.has('steam:unlock') && steamMode === 'client' ? handlers.get('steam:unlock')(null, null) : null,
     nativeNoClient: handlers.has('steam:unlock') && steamMode === 'none' ? handlers.get('steam:unlock')(null, 'ACH_TEST') : null,
     nativeCaughtError: handlers.has('steam:unlock') && steamMode === 'throw' ? handlers.get('steam:unlock')(null, 'ACH_TEST') : null,
+    cachedNativeFilesAdjacent: [
+      'steamworksjs.win32-x64-msvc.node',
+      'steam_api64.dll',
+    ].every((name) => fs.existsSync(path.join(path.dirname(cachedSteamworksIndex), 'dist/win64', name))),
     activationPreserved: false,
   };
   if (!browser && appHandlers.has('activate')) {
@@ -233,6 +260,7 @@ setImmediate(() => {
     def test_browser_mode_initializes_steam_before_host_and_keeps_services(self) -> None:
         self._apply()
         result = self._run_entry(browser=True)
+        self.assertTrue(result["cachedNativeFilesAdjacent"])
         self.assertLess(result["events"].index("initSteam"), result["events"].index("hostStart"))
         self.assertTrue(result["browserServiceDelegatesToNative"])
         self.assertTrue(result["browserServiceHasQuit"])
@@ -243,6 +271,7 @@ setImmediate(() => {
     def test_normal_mode_keeps_window_activation_and_native_unlock_shapes(self) -> None:
         self._apply()
         result = self._run_entry(browser=False)
+        self.assertTrue(result["cachedNativeFilesAdjacent"])
         self.assertEqual(result["events"].count("initSteam"), 1)
         self.assertNotIn("hostStart", result["events"])
         self.assertTrue(result["activationPreserved"])
