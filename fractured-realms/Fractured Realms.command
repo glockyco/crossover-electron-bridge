@@ -1,13 +1,16 @@
 #!/bin/bash
-# Launch Fractured Realms through Steam, with its UI hosted in the native browser.
+# Launch Fractured Realms through the shared CrossOver Electron Bridge CLI.
 # The Steam-tracked Electron process stays alive for playtime/presence.
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-LAUNCHER="$SCRIPT_DIR/patch-and-launch.py"
+set -eu
 
-if [ ! -f "$LAUNCHER" ]; then
-  osascript -e 'display notification "patch-and-launch.py not found beside launcher" with title "Fractured Realms"'
-  exit 1
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)"
+PROJECT_ROOT="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd -P)"
+
+if [ -n "${PYTHONPATH:-}" ]; then
+  export PYTHONPATH="$PROJECT_ROOT/src:$PYTHONPATH"
+else
+  export PYTHONPATH="$PROJECT_ROOT/src"
 fi
 
-exec python3 "$LAUNCHER"
+exec python3 -m crossover_electron_bridge launch fractured-realms
