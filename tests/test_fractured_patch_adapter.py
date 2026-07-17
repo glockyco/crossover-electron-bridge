@@ -105,6 +105,10 @@ class FracturedRealmsAdapterTests(unittest.TestCase):
             },
         )
         self.assertEqual(self.adapter.revision, REVISION)
+        self.assertEqual(
+            (electron / "main.cjs").read_text(encoding="utf-8").count("const fs   = require('fs');"),
+            1,
+        )
         transformed = self._entry().read_text(encoding="utf-8")
         self.assertEqual(transformed.count("function unlockSteamAchievement(apiName)"), 1)
         self.assertEqual(
@@ -259,6 +263,7 @@ setImmediate(() => {
     def test_each_missing_or_duplicate_main_anchor_fails_before_writes(self) -> None:
         anchors = (
             "const STEAM_APP_ID = 3789070;",
+            "const fs   = require('fs');",
             "function initSteam() {",
             "function createWindow() {",
             "app.whenReady().then(() => {",

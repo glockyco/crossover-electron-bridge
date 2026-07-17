@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
+const fs   = require('fs');
 
 const STEAM_APP_ID = 3789070;
 let steamClient = null;

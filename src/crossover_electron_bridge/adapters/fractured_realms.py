@@ -134,7 +134,7 @@ class FracturedRealmsAdapter:
 
         if source.count("const path = require('path');") != 1:
             raise cls._reject()
-        if source.count("const fs = require('fs');") != 0:
+        if source.count("const fs   = require('fs');") != 1:
             raise cls._reject()
         if source.count("crossoverBrowserMode") != 0 or cls.revision in source:
             raise cls._reject()
@@ -253,7 +253,6 @@ class FracturedRealmsAdapter:
         import_replacement = newline.join(
             (
                 import_anchor,
-                "const fs = require('fs');",
                 f"const crossoverBrowserMode = process.argv.includes('--crossover-browser'); // {cls.revision}",
             )
         )
