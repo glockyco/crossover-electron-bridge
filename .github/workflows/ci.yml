@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests (Python ${{ matrix.python }})
+    # The bridge drives CrossOver on macOS, and its tests rely on POSIX paths and symlinks.
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        # The oldest version pyproject.toml supports and the current one.
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install the package
+        run: python -m pip install --editable .
+      - name: Python tests
+        run: python -m unittest discover -s tests
+      - name: Node tests
+        run: node --test tests/node/*.test.cjs
