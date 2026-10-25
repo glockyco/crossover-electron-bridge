@@ -87,6 +87,8 @@ python3 -m unittest discover -s tests
 node --test tests/node/*.test.cjs
 ```
 
+[CI](.github/workflows/ci.yml) runs both suites on macOS for every pull request.
+
 For commands without a package install, use the source module:
 
 ```sh
