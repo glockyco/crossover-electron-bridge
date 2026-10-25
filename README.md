@@ -96,3 +96,7 @@ PYTHONPATH=src python3 -m crossover_electron_bridge profiles
 ```
 
 The global `--profile-dir PATH` option loads named JSON profiles from an extension directory. Put it before the subcommand. Profiles can select registered adapters but cannot load executable code from that directory. Add or change an adapter for a game whose native services or interface need different handling.
+
+## License
+
+[MIT](LICENSE).
